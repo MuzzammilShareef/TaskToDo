@@ -11,18 +11,18 @@ namespace TaskToDo.Controllers
     [Route("api/[controller]")]
     [ApiController]
 
-    public class ListsController : ControllerBase
+    public class ListController : ControllerBase
     {
 
         private readonly ToDoContext _context;
 
-        public ListsController(ToDoContext context)
+        public ListController(ToDoContext context)
         {
             _context = context;
         }
 
         //SEE DATA PROCEDURE
-        [HttpGet("Seedata")]
+        [HttpGet("SeeData")]
         public async Task<ActionResult<List<SeeDataDto>>> GetSeeData()
         {
             var result = await _context.SeeDataDtos
@@ -33,7 +33,7 @@ namespace TaskToDo.Controllers
         }
 
         //INSERT LIST PROCEDURE
-        [HttpPost("InsertList")]
+        [HttpPost("CreateList")]
         public async Task<IActionResult> InsertList([FromBody] ListDto listDto)
         {
             if (!ModelState.IsValid)
@@ -42,8 +42,9 @@ namespace TaskToDo.Controllers
             }
 
             var listNameParam = new SqlParameter("@ListName", listDto.ListName ?? "");
-            var taskDataJson = JsonSerializer.Serialize(listDto.Tasks ?? new List<TaskDto>());
-            var taskDataParam = new SqlParameter("@TaskData", taskDataJson);
+
+            var taskDataJson = JsonSerializer.Serialize(listDto.Tasks ?? new List<TaskDto>()); //use the expression listDto.Tasks if it is not null or use the experssion on the right new List<TaskDto>() which will be a empty list of TaskDto objects
+            var taskDataParam = new SqlParameter("@TaskData", taskDataJson); //turning the above into param
 
             await _context.Database.ExecuteSqlRawAsync(
                 "EXEC InsertList @ListName, @TaskData", listNameParam, taskDataParam);
@@ -52,7 +53,7 @@ namespace TaskToDo.Controllers
         }
 
         //COMPARE PROCEDURE
-        //[HttpPost("Compare")]
+        //[HttpPost("CompareUpdate")]
         //public async Task<IActionResult> Compare([FromBody] CompareDto compareDto)
         //{
         //    var listIdParam = new SqlParameter("@ListID", compareDto.ListID);
@@ -66,7 +67,7 @@ namespace TaskToDo.Controllers
         //}
 
         //COMPARE PROCEDURE
-        [HttpPut("compare/{id}")]
+        [HttpPut("CompareUpdate/{id}")]
         public async Task<IActionResult> Compare(int id, [FromBody] List<TaskDto> tasks)
         {
             if (tasks == null)
@@ -82,7 +83,6 @@ namespace TaskToDo.Controllers
 
         }
 
-
         // CLEAR ALL DATA PROCEDURE
         [HttpPost("ClearAllData")]
         public async Task<IActionResult> ClearAllData()
@@ -91,34 +91,8 @@ namespace TaskToDo.Controllers
             return Ok(new { message = "All data cleared and identity reseeded successfully." });
         }
 
-
-        // UPDATING LIST BY ID
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateList(int id, List updatedList)
-        {
-            if (id != updatedList.ListID) return BadRequest();
-
-            _context.Entry(updatedList).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
-
-
-        // DELETING LIST BY ID
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteList(int id)
-        {
-            var list = await _context.Lists.FindAsync(id);
-            if (list == null) return NotFound();
-
-            _context.Lists.Remove(list);
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
-
-
         // FETCHING LIST BY ID
-        [HttpGet("GetByID/{id}")]
+        [HttpGet("GetListByID/{id}")]
         public async Task<ActionResult<List>> GetList(int id)
         {
             var list = await _context.Lists.Include(l => l.Tasks)
@@ -128,6 +102,18 @@ namespace TaskToDo.Controllers
                 return NotFound();
 
             return list;
+        }
+
+        // DELETING LIST BY ID
+        [HttpDelete("DeleteListByID/{id}")]
+        public async Task<IActionResult> DeleteList(int id)
+        {
+            var list = await _context.Lists.FindAsync(id);
+            if (list == null) return NotFound();
+
+            _context.Lists.Remove(list);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

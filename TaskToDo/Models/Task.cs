@@ -9,7 +9,7 @@ namespace TaskToDo.Models
         public int TaskID { get; set; }
 
         [MaxLength(20)]
-        public string TaskName { get; set; }
+        public string? TaskName { get; set; }
 
         public bool IsComplete { get; set; } = false;
 
@@ -20,7 +20,7 @@ namespace TaskToDo.Models
         [ForeignKey("List")]
         public int ListID { get; set; }
 
-        public List List { get; set; }
+        public List? List { get; set; }
 
         public bool IsDeleted { get; set; } = false;
 

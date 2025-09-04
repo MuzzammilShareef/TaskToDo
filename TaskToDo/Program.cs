@@ -30,6 +30,13 @@ namespace TaskToDo
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    builder => builder.WithOrigins("http://localhost:3000")
+                                      .AllowAnyHeader()
+                                      .AllowAnyMethod());
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -39,13 +46,6 @@ namespace TaskToDo
                 app.UseSwaggerUI();
             }
 
-            //builder.Services.AddCors(options =>
-            //{
-            //    options.AddPolicy("AllowReactApp",
-                    //builder => builder.WithOrigins("http://localhost:3000")
-            //                          .AllowAnyHeader()
-            //                          .AllowAnyMethod());
-            //});
 
             app.UseCors("AllowReactApp");
 
